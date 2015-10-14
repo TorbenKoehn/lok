@@ -1,0 +1,293 @@
+<?php
+
+if( !account::logged_in() || !character::selected() ) {
+    
+    return;
+}
+
+?>
+<style>
+    
+    #character-widget {
+        margin-bottom: 10px;
+    }
+    
+    #character-widget-content {
+        padding: 10px;
+    }
+    
+    #character-widget-general table {
+        width: 95%;
+        margin: 0px auto;
+    }
+    
+    #character-widget-general table th, #character-widget-status table th {
+        width: 80px;
+        border-right: 1px dashed #ccc;
+        text-align: left;
+        font-weight: bold;
+        padding: 5px 0px;
+        vertical-align: middle;
+    }
+    
+    #character-widget-stats table th {
+        width: 75px;
+    }
+    
+    #character-widget-general table td, #character-widget-status table td {
+        padding: 5px 0px 5px 5px;
+        vertical-align: middle;
+    }
+
+    #character-widget-stats table td {
+        line-height: 20px;
+        height: 20px;
+        width: 40px;
+        padding-left: 10px;
+        text-align: right;
+    }
+    
+    #character-widget-general table .small {
+        display: block;
+        font-size: 0.8em;
+        text-align: center;
+    }
+    
+    #character-widget-builds select {
+        width: 190px;
+    }
+    
+     #character-widget-builds button {
+        width: 190px;
+        height: 20px;
+        line-height: 12px;
+        font-size: 0.7em;
+        font-weight: bold;
+    }
+    
+    #character-widget-builds select option[selected] {
+        background: #eee;
+    }
+    
+    #character-widget-stats .stat-decrease-button, #character-widget-stats .stat-increase-button {
+        width: 20px;
+        height: 20px;
+        margin-top: 5px;
+    }
+    
+    #character-widget-stats .stat-value {
+        font-size: 1.6em;
+    }
+    
+    #character-widget-stats .stat-decrease-button span, #character-widget-stats .stat-increase-button span {
+        margin-left: -8px;
+        margin-top: -8px;
+    }
+    
+    #character-widget-stats .points-left {
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+    
+</style>
+<div id="character-widget" data-ui="box">
+    <div data-ui="boxheader">
+        <span><?=character::current()->name?></span>
+    </div>
+    <div data-ui="boxcontent" id="character-widget-content">
+        
+        <div data-ui="tabs" id="character-widget-tabs">
+            <ul>
+                <li><a href="#character-widget-general">general</a></li>
+                <li><a href="#character-widget-status">stats</a></li>
+                <li><a href="#character-widget-pet">pet</a></li>
+            </ul>
+            <div id="character-widget-general">
+                
+                <fieldset data-ui="placeholder" id="character-widget-info">
+                    <legend>info</legend>
+                    <table>
+                        <tr>
+                            <th>level</th><td>$(level)</td>
+                        </tr>
+                        <tr>
+                            <th>experience</th>
+                            <td>
+                                <div data-ui="progressbar" data-ui-color="orange" data-ui-value="$(experience)" data-ui-max="$(required_experience)"></div>
+                                <span class="small">$(experience) / $(required_experience)</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>life</th>
+                            <td>
+                                <div data-ui="progressbar" data-ui-color="red" data-ui-value="$(health)" data-ui-max="$(total_health)"></div>
+                                <span class="small">$(health) / $(total_health)</span>
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <th>mana</th>
+                            <td>
+                                <div data-ui="progressbar" data-ui-color="blue" data-ui-value="$(mana)" data-ui-max="$(total_mana)"></div>
+                                <span class="small">$(mana) / $(total_mana)</span>
+                            </td>
+
+                        </tr>
+                    </table>
+                </fieldset>
+                
+            </div>
+            <div id="character-widget-status">
+                
+                <fieldset id="character-widget-builds">
+                    <legend>build</legend>
+                    <select>
+                        <?php foreach( character::current()->builds() as $build ) : ?>
+                        <option <?=$build->id == character::current()->build_id ? 'selected ' : ''?>value="<?=$build->id?>"><?=$build->name?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <div data-ui="buttonset">
+                            <button data-ui="button">build manager</button>
+                        </div>
+                </fieldset>
+                
+                <fieldset id="character-widget-stats">
+                    <legend>status values</legend>
+                    <table>
+                        <?php 
+                            
+                        $statsShown = array( 'strength', 'dexterity', 'wisdom', 'vitality' );
+                        
+                        foreach( $statsShown as $stat ):
+                        ?>
+                        <tr>
+                            <th data-ui="kbtooltip" data-ui-args="{'url':'<?=page::url( "/api-kb/formatted/character-stat-$stat" )?>'}"><?=$stat?></th>
+                            <td>
+                                <button data-ui="button" data-ui-args="{'text':false}" class="stat-decrease-button" data-stat="<?=$stat?>" data-ui-icon="minus"></button>
+                            </td>
+                            <td>
+                                <span data-ui="kbtooltip" data-ui-args="{'url':'<?=page::url( "/api-kb/formatted/character-stat-$stat-value" )?>','cache':true}" class="stat-value" data-stat="<?=$stat?>"></span>
+                            </td>
+                            <td>
+                                <span data-ui="kbtooltip" data-ui-args="{'url':'<?=page::url( "/api-kb/formatted/character-stat-$stat-bonus" )?>','cache':true}" class="stat-bonus" data-stat="<?=$stat?>"></span>
+                            </td>
+                            <td>
+                                <button data-ui="button" data-ui-args="{'text':false}" class="stat-increase-button" data-stat="<?=$stat?>" data-ui-icon="plus"></button>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                        <tr>
+                            <td colspan="5"><span class="points-left"></span> points left</td>
+                        </tr>
+                    </table>
+                </fieldset>
+                
+            </div>
+            <div id="character-widget-pet">
+                General pet
+            </div>
+        </div>
+        
+        
+    </div>
+</div>
+<script>
+    
+    $( function() {
+        
+        "use strict";
+        
+        var $tabs = $( '#character-widget-tabs' );
+        var $general = $( '#character-widget-general' );
+        var $status = $( '#character-widget-status' );
+        var $stats = $( '#character-widget-stats' );
+        var $info = $( '#character-widget-info' );
+        
+        var statsShown = '<?=implode( ' ', $statsShown )?>'.split( ' ' );
+        
+        var statActions = 'decrease increase'.split( ' ' );
+        
+        for( var i in statActions ) {
+            
+            var action = statActions[ i ];
+
+            $( '.stat-' + action + '-button', $stats ).data( 'action', action ).click( function( e ) {
+                e.preventDefault();
+
+                var $this = $( this );
+                var stat = $this.attr( 'data-stat' );
+
+                $this.button( 'disable' );
+                $.getJSON( '<?=page::url( '/api-character' )?>/' + $this.data( 'action' ) + '-stat/' + stat, function( result ) {
+
+                    if( !result.status ) {
+
+                        //show error message to user?
+                        return;
+                    }
+
+                    updateStats( result.data, stat );
+                } );
+            } );
+        }
+
+        function updateStats( stats, statsToUpdate ) {
+            
+            var statsToUpdate = statsToUpdate ? statsToUpdate.split( ' ' ) : statsShown;
+            
+            for( var i in statsToUpdate ) {
+                
+                var stat = statsToUpdate[ i ];
+
+                if( typeof stats[ stat ] !== "undefined" && stats[ stat ] < 1 ) {
+                    
+                    $( '.stat-decrease-button[data-stat="' + stat + '"]', $stats ).button( 'disable' );
+                } else {
+                    
+                    $( '.stat-decrease-button[data-stat="' + stat + '"]', $stats ).button( 'enable' );
+                }
+                $( '.stat-value[data-stat="' + stat + '"]', $stats ).text( stats[ stat ] );
+                if( ( 'bonus_' + stat  ) in stats ) {
+                    
+                    var bonus = stats[ 'bonus_' + stat ];
+                    $( '.stat-bonus[data-stat="' + stat + '"]', $stats ).text( ( bonus >= 0 ? '+' : '' ) + bonus ).css( 'color', bonus >= 0 ? '#55dd55' : '#dd5555'  );
+                }
+            }
+        
+            if( stats.status_points_left < 1 ) {
+                
+                $( '.stat-increase-button', $stats ).button( 'disable' );
+            } else {
+                
+                $( '.stat-increase-button', $stats ).button( 'enable' );
+            }
+        
+            $( '.points-left', $stats ).text( stats.status_points_left );
+        }
+        
+        function reloadCharacterInfo() {
+            
+            $.getJSON( '<?=page::url( '/api-character/info' )?>', function( result ) {
+        
+                if( !result.status ) {
+                    
+                    //some error occured...reload the page?
+                    window.location.reload();
+                } else {
+                    
+                    $info.placeholder( result.data );                    
+                    updateStats( result.data );
+                }
+            } );
+        }
+    
+        var initialData = $.parseJSON( '<?=json_encode( character::current()->info() )?>' );
+        $info.placeholder( initialData );
+        updateStats( initialData );
+        
+        //expose function
+        window.reloadCharacterInfo = reloadCharacterInfo;
+        window.updateCharacterStats = updateStats;
+    } );
+    
+</script>

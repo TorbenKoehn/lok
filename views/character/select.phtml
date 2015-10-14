@@ -1,0 +1,61 @@
+<?php
+    
+    page::section( 'left', 
+            
+        $this->render( 'widgets/account' )
+    );
+?>
+<style>
+    
+    #character-select .item {
+        width: 80%;
+        margin-bottom: 10px;
+    }
+    
+    #character-select .item .footer {
+        text-align: right;
+        padding: 5px;
+    }
+    
+    #character-select .item .footer button {
+        width: 120px;
+    }
+    
+</style>
+<div id="character-select">
+    
+    <div id="character-select-list">
+        
+        <div id="character-select-template" class="item" data-ui="template">
+            <div data-ui="box">
+                <div data-ui="boxheader">
+                    $(name)
+                </div>
+                <div data-ui="boxcontent">
+
+                    character info...
+                </div>
+                <div data-ui="boxfooter" class="footer">
+                    
+                    <button data-ui="button" disabled data-ui-href="<?=page::url( '/character/rename/' )?>$(id)">Rename</button>
+                    <button data-ui="button" data-ui-href="<?=page::url( '/character/select/' )?>$(id)">Select</button>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+<script>
+    
+    $( function() {
+        
+        var $tpl = $( '#character-select-template' );
+        var $list = $( '#character-select-list' );
+        
+        <?php foreach( $characters as $char ) : ?>
+            $tpl.template( { id: <?=$char->id?>, name: '<?=$char->name?>' } ).template( 'appendTo', $list );
+        <?php endforeach; ?>
+        
+    } );
+    
+</script>

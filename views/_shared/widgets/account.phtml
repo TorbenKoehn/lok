@@ -1,0 +1,153 @@
+<style>
+    
+    #account-widget {
+        margin-bottom: 10px;
+    }
+    
+    #account-widget-content {
+        padding: 15px;
+        min-height: 50px;
+    }
+    
+    #account-widget-content nav li {
+        display: block;
+        margin-bottom: 2px;
+    }
+    
+    #account-widget-content nav li button {
+        width: 100%;
+        text-align: left;
+    }
+    
+    #account-widget label {
+        display: block;
+        margin-top: 5px;
+    }
+    
+    #account-widget input {
+        width: 180px;
+    }
+    
+    #account-widget-footer {
+        padding: 10px;
+        text-align: right;
+    }
+    
+</style>
+<div id="account-widget" data-ui="box">
+    <?php if( !account::logged_in() ): ?>
+    <div data-ui="boxheader">
+        <span>account</span>
+    </div>
+    <form>
+        <div data-ui="boxcontent" id="account-widget-content">
+
+            <div id="account-widget-form">
+
+                <span data-ui="errorbox" id="account-widget-error" data-ui-args="{'visible':false}"></span>
+
+                <label for="account-widget-email">e-mail</label>
+                <input placeholder="someone@example.com" id="account-widget-email">
+
+                <label for="account-widget-password">password</label>
+                <input type="password" placeholder="********" id="account-widget-password">
+            </div>
+
+        </div>
+        <div data-ui="boxfooter" id="account-widget-footer">
+            <div data-ui="buttonset">
+
+                <button data-ui="button" id="account-widget-login-button">log in</button>
+            </div>
+        </div>
+    </form>
+    <?php else: ?>
+    
+    <div data-ui="boxheader">
+        <?=account::current()->email?>
+    </div>
+    <div data-ui="boxcontent" id="account-widget-content">
+        
+        <nav>
+            <ul>
+                <li><button data-ui="button" data-ui-icon="person">My profile</button></li>
+                <li><button data-ui="button" data-ui-icon="gear">Settings</button></li>
+                <li><button data-ui-href="<?=page::url( '/character/select' )?>" data-ui="button" data-ui-icon="transferthick-e-w">Select character</button></li>
+            </ul>
+        </nav>
+        
+        <div id="account-widget-settings">
+            <table>
+                <tr>
+                    <td>background music</td>
+                    <td>
+                        <span data-ui="buttonset">
+                            <input id="account-widget-background-music-yes" type="radio" data-option="background_music" data-value="true" name="background_music">
+                            <label for="account-widget-background-music-yes">yes</label>
+                            <input id="account-widget-background-music-no" type="radio" data-option="background_music" data-value="false" name="background_music">
+                            <label for="account-widget-background-music-no">no</label>
+                        </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+    </div>
+    <div data-ui="boxfooter" id="account-widget-footer">
+        <div data-ui="buttonset">
+
+            <button data-ui="button" data-ui-href="<?=page::url( '/account/log-out' )?>" id="account-widget-logout-button">log out</button>
+        </div>
+    </div>
+    <?php endif; ?>
+</div>
+<script>
+    
+    
+    $( function() {
+        
+        <?php if( !account::logged_in() ): ?>
+            $( '#account-widget-login-button' ).click( function( e ) {
+
+                var $form = $( '#account-widget-form' );
+                var $button = $( this );
+                var $email = $( '#account-widget-email' );
+                var $password = $( '#account-widget-password' );
+                var $indicator = $( '<img src="<?=page::url( '/images/ajax.gif' )?>">' );
+
+                e.preventDefault();
+
+                $button.button( { label: 'logging in...', disabled: true } );
+
+                $form.slideUp( 'fast', function() {
+                     $form.after( $indicator );
+                } );
+
+                $.postJSON( '<?=page::url( '/api-account/login' )?>', {
+                    email: $email.val(),
+                    password: $password.val()
+                }, function( result ) {
+
+                    if( !result.status ) {
+
+                        $( '#account-widget-error' ).errorbox( {
+                            text: 'Invalid email or password',
+                            visible: true
+                        } );
+
+                        $indicator.remove();
+                        $form.slideDown( 'fast' );
+                        $button.button( { label: 'log in', disabled: false } );
+
+
+                    } else {
+
+                        window.location.reload();
+                    }
+                } );
+            } );
+        <?php endif; ?>
+        
+    } );
+
+</script>

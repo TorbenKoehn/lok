@@ -1,0 +1,86 @@
+<style>
+    
+    #inventory-widget {
+        width: 100%;
+        position: fixed;
+        bottom: 0px;
+    }
+    
+    #inventory-widget-hotkey-bar, #inventory-widget-inventory, #inventory-widget-toggle-button-container {
+        display: block;
+        width: 400px;
+        height: 40px;
+        margin: 0px auto;
+        background: #fafafa;
+    }
+    
+    #inventory-widget-toggle-button {
+        display: block;
+        width: 400px;
+        height: 30px;
+        border: 0;
+        padding: 0;
+        margin: 0px auto;
+    }
+    
+    #inventory-widget .hotkey, #inventory-widget .item {
+        position: relative;
+        width: 40px;
+        height: 40px;
+        float: left;
+        display: block;
+        border: 1px solid #1561AC;
+    }
+    
+    #inventory-widget .key, #inventory-widget .amount {
+        position: absolute;
+        right: 0px;
+        bottom: 0px;
+        background: #1561AC;
+        font-size: 9px;
+        height: 10px;
+        padding-left: 3px;
+        padding-right: 2px;
+        color: #fff;
+    }
+    
+     #inventory-widget .key {
+        top: 0px;
+        left: 0px;
+        right: auto;
+        bottom: auto;
+    }
+    
+    #inventory-widget-toggle-button-container {
+        height: 30px;
+    }
+    
+    #inventory-widget-inventory {
+    }
+    
+</style>
+<div id="inventory-widget">
+    <nav id="inventory-widget-hotkey-bar" data-ui="box">
+        <ul>
+            <li class="hotkey" data-key="$(key_code)" data-index="$(index)">
+                <div class="key">$(key)</div>
+                <div class="amount">$(amount)</div>
+            </li>
+        </ul>
+    </nav>
+    <div id="inventory-widget-toggle-button-container">
+        <button data-ui="button" id="inventory-widget-toggle-button">Inventory</button>
+    </div>
+    <nav id="inventory-widget-inventory" data-ui="box">
+        <ul class="clearfix">
+            <li class="item" data-id="$(id)">
+                <div class="amount">$(amount)</div>
+            </li>
+        </ul>
+    </nav>
+</div>
+<script>
+
+
+
+</script>

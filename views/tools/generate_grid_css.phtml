@@ -1,0 +1,13 @@
+
+<div class="ui-widget ui-corner-all">
+    <div class="ui-widget ui-widget-header ui-corner-all">Generate Grid CSS</div>
+    <div class="ui-widget ui-widget-content">
+        
+        <label for="grid-size">Grid size:</label>
+        <input id="grid-size" value="<?=$size?>">
+        
+        <br><br>
+        <button data-ui="button" data-icon="save" onclick="window.location.href='<?=page::url( '/tools/generate-grid-css/' )?>' + $( '#grid-size' ).val()">Generate</button>
+        
+    </div>
+</div>

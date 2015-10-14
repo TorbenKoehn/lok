@@ -1,0 +1,255 @@
+<?php
+    
+    page::section( 'left', 
+            
+        $this->render( 'widgets/character' ).
+        $this->render( 'widgets/account' )
+    );
+    
+    page::section( 'body', 
+            
+        $this->render( 'widgets/inventory' )
+    );
+?>
+<style>
+    
+    #map-table {
+        width: 460px;
+        height: 460px;
+        margin: 20px auto;
+    }
+    
+    #map-table td {
+        vertical-align: middle;
+        text-align: center;
+    }
+    
+    #map-table .v {
+        width: 460px;
+        height: 30px;
+    }
+    
+    #map-table .v button {
+        width: 400px;
+        border: 0;
+        margin: 0;
+        padding: 0;
+    }
+    
+    #map-table .h  {
+        height: 400px;
+        width: 460px;
+    }
+    
+    #map-table .h button {
+        height: 400px;
+        width: 30px;
+        border: 0;
+        margin: 0;
+        padding: 0;
+    }
+    
+    #map {
+        width: 400px;
+        height: 400px;
+        position: relative;
+        background: #000;
+    }
+    
+</style>
+<div data-ui="box" id="world-box">
+    <div id="map-box">
+        <div data-ui="boxheader" id="map-title"></div>
+        <div data-ui="boxcontent" class="content">
+            
+            <table id="map-table">
+                <tr class="v">
+                    <td colspan="3"><button class="move-button" data-direction="north" data-ui="button">N</button></td>
+                </tr>
+                <tr class="h">
+                    <td><button class="move-button" data-direction="west" data-ui="button">W</button></td>
+                    <td><div id="map"></div></td>
+                    <td><button class="move-button" data-direction="east" data-ui="button">E</button></td>
+                </tr>
+                <tr class="v">
+                    <td colspan="3"><button class="move-button" data-direction="south" data-ui="button">S</button></td>
+                </tr>
+            </table>
+
+        </div>
+    </div>
+</div>
+<script>
+    
+    $( function() {
+    
+        
+    
+        var $box = $( '#map-box' );
+        var $table = $( '#map-table' );
+        var $map = $( '#map' );
+        var $title = $( '#map-title' );
+        var currentBackground = null;
+        
+        var directions = 'north east west south'.split( ' ' );
+        
+        
+        $( '.move-button', $table ).click( function( e ) {
+            e.preventDefault();
+    
+            var direction = $( this ).attr( 'data-direction' );
+    
+            $.getJSON( '<?=page::url( '/api-character/move' )?>/' + direction, function( result ) {
+            
+                if( !result.status ) {
+                    
+                   $.errorDialog( "You can\'t move in that direction<br><br>" + result.data.message );
+                    
+                } else {
+                
+                    $title.text( result.data.name );
+                    changeMapBackground( result.data.background_url );
+                    updateDirections( result.data );
+                    setTriggers( result.data.triggers );
+                }
+            } );
+        } );
+        
+        
+        function updateDirections( map, directionsToUpdate ) {
+            
+            directionsToUpdate = directionsToUpdate ? directionsToUpdate.split( ' ' ) : directions;
+            
+            for( var i in directionsToUpdate ) {
+                
+                var direction = directionsToUpdate[ i ];
+                var hasVar = 'has_' + direction;
+                
+                var $btn = $( '.move-button[data-direction="' + direction + '"]', $table );
+                
+                if( map[ hasVar ] ) {
+                    
+                    $btn.button( 'enable' );
+                } else {
+                    
+                    $btn.button( 'disable' );
+                }
+            }
+        }
+    
+        var triggerActions = {
+            
+            message_box: function( args ) {
+                
+                $.showDialog( args.message, args.title );
+            }
+        };
+    
+        function callTrigger( id ) {
+            
+            $.getJSON( '<?=page::url( '/api-character/trigger' )?>/' + id, function( result ) {
+            
+                if( !result.status ) {
+                    
+                    $.errorDialog( "Failed to trigger<br><br>" + result.data.message );
+                } else {
+                    
+                    if( result.data.type in triggerActions ) {
+                
+                        triggerActions[ result.data.type ]( result.data.args );
+                    } else {
+                        
+                        $.errorDialog( 'Sorry, I can\'t figure out what this does' );
+                    }
+                }
+            } );
+        }
+    
+        function setTriggers( triggers ) {
+            
+            $map.find( 'div' ).remove();
+            for( var i in triggers ) {
+                
+                var trigger = triggers[ i ];
+                
+                var img = new Image();
+                img.onload = ( function( trigger ) {
+                    
+                    return function() {
+
+                        var html = '<div data-ui="tooltip"' +
+                           ' title="' + trigger.name + '"' +
+                           ' class="trigger"' +
+                           ' data-id="' + trigger.id + '"' +
+                           ' style="background: url( \'<?=page::url( '/images/triggers' )?>/' + trigger.sprite_url + '\' );' +
+                            ' position: absolute; top: ' + trigger.y + 'px; left: ' + trigger.x + 'px;' +
+                            ' cursor: pointer;' + 
+                            ' width: ' + img.width + 'px; height: ' + img.height + 'px;"' +
+                           '></div>';
+
+                        $( html ).hover( function() {
+
+                            $( this ).animate( { opacity: 0.4 }, { duration: 'slow', queue: false } );
+                        }, function() {
+
+                            $( this ).animate( { opacity: 1 }, { duration: 'slow', queue: false } );
+                        } ).click( function( e ) {
+
+                            callTrigger( $( this ).attr( 'data-id' ) );
+                        } ).appendTo( $map );
+                        $.refreshUi();
+                    }
+                } )( trigger );
+            
+                img.src = '<?=page::url( '/images/triggers' )?>/' + trigger.sprite_url;
+            }
+        }
+        
+        function changeMapBackground( newBackground ) {
+            
+            if( currentBackground === newBackground ) {
+                
+                return;
+            }
+        
+            currentBackground = newBackground;
+
+            $table.fadeOut( 'slow', function() {
+
+                $map.css( 'background', 'url( "<?=page::url( '/images/maps' )?>/' + currentBackground + '" )' );
+                $table.fadeIn( 'slow' );
+            } );
+        }
+    
+        function reloadMap() {
+            
+            $.getJSON( '<?=page::url( '/api-character/map-info' )?>', function( result ) {
+                
+                if( !result.status ) {
+                    
+                    //something went wrong...reload the page?
+                    window.location.reload();
+                } else {
+                
+                    $title.text( result.data.name );
+                    changeMapBackground( result.data.background_url );
+                    updateDirections( result.data );
+                    setTriggers( result.data.triggers );
+                }
+            } );
+        }
+    
+        var initialData = $.parseJSON( '<?=json_encode( $map->info() )?>' );
+    
+        $table.fadeOut( 0 );
+        $title.text( initialData.name );
+        changeMapBackground( initialData.background_url );
+        updateDirections( initialData );
+        setTriggers( initialData.triggers );
+        
+        
+        window.reloadMap = reloadMap;
+        window.updateMapDirections = updateDirections;
+    } );
+    
+</script>
